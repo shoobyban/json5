@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func Parse(json5 string) (interface{}, error) {
+func UnMarshal(json5 string) (interface{}, error) {
 	tokens := Tokenize(json5)
 
 	tokenLen := len(tokens)
