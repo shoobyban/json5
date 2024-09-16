@@ -7,33 +7,33 @@ import (
 )
 
 func TestMarshalNil(t *testing.T) {
-	result, err := Marshal(nil, "")
+	result, err := Marshal(nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "null", result)
 }
 
 func TestMarshalBool(t *testing.T) {
-	result, err := Marshal(true, "")
+	result, err := Marshal(true)
 	assert.NoError(t, err)
 	assert.Equal(t, "true", result)
 
-	result, err = Marshal(false, "")
+	result, err = Marshal(false)
 	assert.NoError(t, err)
 	assert.Equal(t, "false", result)
 }
 
 func TestMarshalNumber(t *testing.T) {
-	result, err := Marshal(42, "")
+	result, err := Marshal(42)
 	assert.NoError(t, err)
 	assert.Equal(t, "42", result)
 
-	result, err = Marshal(3.14, "")
+	result, err = Marshal(3.14)
 	assert.NoError(t, err)
 	assert.Equal(t, "3.14", result)
 }
 
 func TestMarshalString(t *testing.T) {
-	result, err := Marshal("Hello\nWorld", "")
+	result, err := Marshal("Hello\nWorld")
 	assert.NoError(t, err)
 	assert.Equal(t, "\"Hello\\nWorld\"", result)
 }
@@ -46,7 +46,7 @@ func TestMarshalArray(t *testing.T) {
 true, 
 null
 ]`
-	result, err := Marshal(input, "")
+	result, err := Marshal(input)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 }
@@ -68,7 +68,7 @@ city: "New York",
 zipcode: 10001,
 },
 }`
-	result, err := Marshal(input, "")
+	result, err := Marshal(input)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 }
@@ -86,7 +86,7 @@ simpleKey: "value",
 nestedKey: "nestedValue",
 },
 }`
-	result, err := Marshal(input, "")
+	result, err := Marshal(input)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
 }

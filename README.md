@@ -114,6 +114,73 @@ Type: 5, Value: ,
 Type: 1, Value: }
 ```
 
+### Marshalling
+
+```go
+package main
+
+import (
+    "fmt"
+
+    "github.com/shoobyban/json5"
+)
+
+func main() {
+    data := map[string]interface{}{
+        "name": "John Doe",
+        "age": 42,
+        "married": true,
+        "children": nil,
+        "address": map[string]interface{}{
+            "city": "New York",
+            "zipcode": 10001,
+        },
+        "favorites": []interface{}{
+            "pizza", 42, false, nil,
+            map[string]interface{}{
+                "item": "book",
+                "price": 10.99,
+                "in_stock": true,
+            },
+        },
+    }
+
+    // there is a Marshal(value interface{}) function as well that does not indent the output
+    result, err := json5.MarshalIndent(data, "  ")
+    if err != nil {
+        fmt.Println("Error:", err)
+        return
+    }
+
+    fmt.Println(result)
+}
+```
+
+Output:
+```
+{
+  name: "John Doe",
+  age: 42,
+  married: true,
+  children: null,
+  address: {
+    city: "New York",
+    zipcode: 10001,
+  },
+  favorites: [
+    "pizza", 
+    42, 
+    false, 
+    null, 
+    {
+      item: "book",
+      price: 10.99,
+      in_stock: true,
+    }
+  ],
+}
+```
+
 ## Benchmarks
 
 Just joking. Horrible performance, but it works for my use case. Feel free to improve it.

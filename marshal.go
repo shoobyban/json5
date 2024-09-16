@@ -8,7 +8,12 @@ import (
 )
 
 // Marshal converts an interface{} into a JSON5 string.
-func Marshal(value interface{}, indent string) (string, error) {
+func Marshal(value interface{}) (string, error) {
+	return marshalValue(value, "", 0)
+}
+
+// MarshalIndent converts an interface{} into a JSON5 string with indentation.
+func MarshalIndent(value interface{}, indent string) (string, error) {
 	return marshalValue(value, indent, 0)
 }
 

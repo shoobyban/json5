@@ -31,7 +31,7 @@ func main() {
 
 	fmt.Printf("Parsed result: %+v\n", result)
 
-	m, err := json5.Marshal(result, "  ")
+	m, err := json5.MarshalIndent(result, "  ")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
