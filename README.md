@@ -48,7 +48,7 @@ func main() {
 		        key24: "Hello, \U{0x1F600}world!",
 	}`
 
-	result, err := json5.Parse(input)
+	result, err := json5.UnMarshal(input)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

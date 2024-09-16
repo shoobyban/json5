@@ -23,7 +23,7 @@ func TestParseJSON5Object(t *testing.T) {
         "favorites": ["pizza", 42, false, null, {"item": "book", price: 10.99, "in_stock": true,}]
     }`
 
-	result, err := Parse(input)
+	result, err := UnMarshal(input)
 	if err != nil {
 		t.Fatalf("Error parsing JSON5 object: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestParseJSON5Object(t *testing.T) {
 func TestParseJSON5Array(t *testing.T) {
 	input := `["a", 'b', 1]`
 
-	result, err := Parse(input)
+	result, err := UnMarshal(input)
 	if err != nil {
 		t.Fatalf("Error parsing JSON5 array: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestParseJSON5Array(t *testing.T) {
 func TestParseJSON5String(t *testing.T) {
 	input := `'a'`
 
-	result, err := Parse(input)
+	result, err := UnMarshal(input)
 	if err != nil {
 		t.Fatalf("Error parsing JSON5 string: %v", err)
 	}
@@ -72,7 +72,7 @@ func TestParseJSON5String(t *testing.T) {
 func TestParseJSON5Number(t *testing.T) {
 	input := `42`
 
-	result, err := Parse(input)
+	result, err := UnMarshal(input)
 	if err != nil {
 		t.Fatalf("Error parsing JSON5 number: %v", err)
 	}
@@ -100,6 +100,6 @@ func BenchmarkJSON(b *testing.B) {
 		}`
 
 	for i := 0; i < b.N; i++ {
-		Parse(input)
+		UnMarshal(input)
 	}
 }

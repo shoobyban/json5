@@ -23,7 +23,7 @@ func main() {
 		        key24: "Hello, \U{0x1F600}world!",
 	}`
 
-	result, err := json5.Parse(input)
+	result, err := json5.UnMarshal(input)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -31,7 +31,14 @@ func main() {
 
 	fmt.Printf("Parsed result: %+v\n", result)
 
-	result2, err := json5.Parse(`["a", 'b', 1]`)
+	m, err := json5.Marshal(result, "  ")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(m)
+
+	result2, err := json5.UnMarshal(`["a", 'b', 1]`)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -39,7 +46,7 @@ func main() {
 
 	fmt.Printf("Parsed result: %+v\n", result2)
 
-	result3, err := json5.Parse(`'a'`)
+	result3, err := json5.UnMarshal(`'a'`)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -47,7 +54,7 @@ func main() {
 
 	fmt.Printf("Parsed result: %+v\n", result3)
 
-	result4, err := json5.Parse(`42`)
+	result4, err := json5.UnMarshal(`42`)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -55,7 +62,7 @@ func main() {
 
 	fmt.Printf("Parsed result: %+v\n", result4)
 
-	result5, err := json5.Parse(``)
+	result5, err := json5.UnMarshal(``)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
