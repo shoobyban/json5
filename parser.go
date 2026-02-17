@@ -7,8 +7,16 @@ import (
 	"strings"
 )
 
-func UnMarshal(json5 string) (interface{}, error) {
-	tokens := Tokenize(json5)
+func UnMarshal(json5 string) (any, error) {
+	allTokens := Tokenize(json5)
+
+	// Filter out comment tokens so the parser handles JSON5 comments
+	tokens := make([]Token, 0, len(allTokens))
+	for _, t := range allTokens {
+		if t.Type != TOKEN_COMMENT {
+			tokens = append(tokens, t)
+		}
+	}
 
 	tokenLen := len(tokens)
 
@@ -18,7 +26,6 @@ func UnMarshal(json5 string) (interface{}, error) {
 
 	i := 1 // start from the second token (skip the first one we already checked)
 	if tokens[0].Type == TOKEN_LBRACE {
-		// Parse the object
 		obj, err := parseObject(tokens, &i, tokenLen)
 		if err != nil {
 			return nil, err
@@ -27,7 +34,6 @@ func UnMarshal(json5 string) (interface{}, error) {
 	}
 
 	if tokens[0].Type == TOKEN_LBRACKET {
-		// Parse the array
 		arr, err := parseArray(tokens, &i, tokenLen)
 		if err != nil {
 			return nil, err
@@ -40,14 +46,7 @@ func UnMarshal(json5 string) (interface{}, error) {
 	}
 
 	if tokens[0].Type == TOKEN_NUMBER {
-		numberStr := tokens[0].Value
-		if num, err := strconv.Atoi(numberStr); err == nil {
-			return num, nil
-		} else if num, err := strconv.ParseFloat(numberStr, 64); err == nil {
-			return num, nil
-		} else {
-			return nil, fmt.Errorf("invalid number: '%s'", numberStr)
-		}
+		return parseNumber(tokens[0].Value)
 	}
 
 	if tokens[0].Type == TOKEN_TRUE {
@@ -65,9 +64,14 @@ func UnMarshal(json5 string) (interface{}, error) {
 	return nil, fmt.Errorf("expected '{', '[', number, null or boolean but found '%s'", tokens[0].Value)
 }
 
+// Unmarshal is an alias for UnMarshal that follows Go naming conventions.
+func Unmarshal(json5 string) (any, error) {
+	return UnMarshal(json5)
+}
+
 // parseObject parses the tokens as a JSON5 object and returns a map[string]interface{}
-func parseObject(tokens []Token, i *int, tokenLen int) (map[string]interface{}, error) {
-	result := make(map[string]interface{})
+func parseObject(tokens []Token, i *int, tokenLen int) (map[string]any, error) {
+	result := make(map[string]any)
 
 	for *i < tokenLen {
 		// If we encounter a closing brace, we're done with the object
@@ -85,6 +89,9 @@ func parseObject(tokens []Token, i *int, tokenLen int) (map[string]interface{}, 
 		*i++
 
 		// Expect a colon after the key
+		if *i >= tokenLen {
+			return nil, fmt.Errorf("unexpected end of input: expected ':' after key '%s'", key)
+		}
 		if tokens[*i].Type != TOKEN_COLON {
 			return nil, fmt.Errorf("expected ':' after key '%s' but found '%s'", key, tokens[*i].Value)
 		}
@@ -100,6 +107,9 @@ func parseObject(tokens []Token, i *int, tokenLen int) (map[string]interface{}, 
 		result[key] = value
 
 		// After the value, we should either find a comma or a closing brace
+		if *i >= tokenLen {
+			return nil, fmt.Errorf("unexpected end of input: expected ',' or '}'")
+		}
 		if tokens[*i].Type == TOKEN_COMMA {
 			*i++ // Move past the comma
 		} else if tokens[*i].Type == TOKEN_RBRACE {
@@ -114,8 +124,8 @@ func parseObject(tokens []Token, i *int, tokenLen int) (map[string]interface{}, 
 }
 
 // parseArray parses the tokens as a JSON5 array and returns a []interface{}
-func parseArray(tokens []Token, i *int, tokenLen int) ([]interface{}, error) {
-	var result []interface{}
+func parseArray(tokens []Token, i *int, tokenLen int) ([]any, error) {
+	var result []any
 
 	for *i < tokenLen {
 		// If we encounter a closing bracket, we're done with the array
@@ -132,6 +142,9 @@ func parseArray(tokens []Token, i *int, tokenLen int) ([]interface{}, error) {
 		result = append(result, value)
 
 		// After the value, we should either find a comma or a closing bracket
+		if *i >= tokenLen {
+			return nil, fmt.Errorf("unexpected end of input: expected ',' or ']'")
+		}
 		if tokens[*i].Type == TOKEN_COMMA {
 			*i++ // Move past the comma
 		} else if tokens[*i].Type == TOKEN_RBRACKET {
@@ -146,7 +159,7 @@ func parseArray(tokens []Token, i *int, tokenLen int) ([]interface{}, error) {
 }
 
 // parseValue parses a value (string, number, boolean, null, object, or array)
-func parseValue(tokens []Token, i *int, tokenLen int) (interface{}, error) {
+func parseValue(tokens []Token, i *int, tokenLen int) (any, error) {
 	if *i >= tokenLen {
 		return nil, fmt.Errorf("unexpected end of input")
 	}
@@ -159,27 +172,7 @@ func parseValue(tokens []Token, i *int, tokenLen int) (interface{}, error) {
 	case TOKEN_NUMBER:
 		numberStr := tokens[*i].Value
 		*i++
-		// Check if the number is hexadecimal
-		if strings.HasPrefix(numberStr, "0x") || strings.HasPrefix(numberStr, "0X") {
-			// Parse the hexadecimal number
-			num, err := strconv.ParseInt(numberStr, 0, 64)
-			if err != nil {
-				return nil, fmt.Errorf("invalid hexadecimal number: '%s'", numberStr)
-			}
-			if abs(num) < math.MaxInt {
-				return int(num), nil
-			}
-			return num, nil
-		} else {
-			// Parse as a regular decimal number (int or float)
-			if num, err := strconv.Atoi(numberStr); err == nil {
-				return num, nil
-			} else if num, err := strconv.ParseFloat(numberStr, 64); err == nil {
-				return num, nil
-			} else {
-				return nil, fmt.Errorf("invalid number: '%s'", numberStr)
-			}
-		}
+		return parseNumber(numberStr)
 	case TOKEN_TRUE:
 		*i++
 		return true, nil
@@ -200,9 +193,56 @@ func parseValue(tokens []Token, i *int, tokenLen int) (interface{}, error) {
 	}
 }
 
-func abs(x int64) int64 {
-	if x < 0 {
-		return -x
+// parseNumber parses a JSON5 number string into its Go representation.
+// Handles integers, floats, hexadecimal (with optional sign), Infinity,
+// -Infinity, +Infinity, NaN, leading decimal point (.5), trailing
+// decimal point (5.), and exponent signs (1e+5).
+func parseNumber(numberStr string) (any, error) {
+	// Handle Infinity and NaN
+	switch numberStr {
+	case "Infinity", "+Infinity":
+		return math.Inf(1), nil
+	case "-Infinity":
+		return math.Inf(-1), nil
+	case "NaN":
+		return math.NaN(), nil
 	}
-	return x
+
+	// Determine sign and strip it for parsing.
+	// Go's strconv.Atoi/ParseFloat accept '-' but not '+'.
+	parseable := numberStr
+	sign := int64(1)
+	if len(parseable) > 0 && (parseable[0] == '+' || parseable[0] == '-') {
+		if parseable[0] == '-' {
+			sign = -1
+		}
+		parseable = parseable[1:]
+	}
+
+	// Check if the number is hexadecimal
+	if strings.HasPrefix(parseable, "0x") || strings.HasPrefix(parseable, "0X") {
+		num, err := strconv.ParseInt(parseable, 0, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid hexadecimal number: '%s'", numberStr)
+		}
+		num *= sign
+		if num >= math.MinInt && num <= math.MaxInt {
+			return int(num), nil
+		}
+		return num, nil
+	}
+
+	// Re-add '-' for negative decimals so strconv handles them natively
+	if sign == -1 {
+		parseable = "-" + parseable
+	}
+
+	// Parse as a regular decimal number (int or float)
+	if num, err := strconv.Atoi(parseable); err == nil {
+		return num, nil
+	}
+	if num, err := strconv.ParseFloat(parseable, 64); err == nil {
+		return num, nil
+	}
+	return nil, fmt.Errorf("invalid number: '%s'", numberStr)
 }

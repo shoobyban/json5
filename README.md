@@ -1,5 +1,7 @@
 # JSON5 Parser for Go and TinyGo
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/shoobyban/json5.svg)](https://pkg.go.dev/github.com/shoobyban/json5)
+
 This is a simple JSON5 parser (and tokenizer if the parser is not good enough) implemented in Go, supporting full functionality in [TinyGo](https://tinygo.org/).
 
 It supports the JSON5 specification, including unquoted keys, escape sequences in strings, booleans, `null`, and hexadecimal numbers.

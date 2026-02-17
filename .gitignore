@@ -1,1 +1,3 @@
 example/main.wasi
+/coverage.out
+/cover.out
