@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON5 Parser Benchmarks — Go</title>
+<style>
+  :root {
+    --builtin: #4C78A8;
+    --shoobyban: #E45756;
+    --titanous: #54A24B;
+    --furukawa: #EECA3B;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --muted: #6c757d;
+    --border: #dee2e6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem; }
+  .legend {
+    display: flex; gap: 1.5rem; flex-wrap: wrap;
+    margin-bottom: 2rem; padding: 1rem;
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 3px; }
+  .chart-section {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1.5rem; margin-bottom: 1.5rem;
+  }
+  .chart-section h2 { font-size: 1.15rem; margin-bottom: 0.25rem; }
+  .chart-section .desc { color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem; }
+  svg { display: block; }
+  .bar { transition: opacity 0.15s; }
+  .bar:hover { opacity: 0.8; }
+  .axis-label { font-size: 12px; fill: #555; }
+  .axis-label-bold { font-size: 12px; fill: #333; font-weight: 600; }
+  .group-label { font-size: 13px; fill: #333; font-weight: 600; text-anchor: middle; }
+  .value-label { font-size: 10px; fill: #333; text-anchor: middle; }
+  .grid-line { stroke: #e9ecef; stroke-width: 1; }
+  .chart-title { font-size: 14px; fill: #333; font-weight: 600; }
+  .note { font-size: 0.82rem; color: var(--muted); margin-top: 1rem; line-height: 1.5; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<h1>JSON5 Go Parser Benchmark Comparison</h1>
+<p class="subtitle">Apple M4 &middot; darwin/arm64 &middot; Go &middot; 3-run average &middot; <code>go test -bench -benchmem -count=3</code></p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--builtin)"></div> encoding/json (builtin)</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--shoobyban)"></div> shoobyban/json5</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--titanous)"></div> titanous/json5</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:var(--furukawa)"></div> furukawa/json5</div>
+</div>
+
+<!-- Standard JSON: Speed -->
+<div class="chart-section">
+  <h2>Standard JSON Parsing — Speed (ns/op)</h2>
+  <p class="desc">Lower is better. Parsing valid JSON with all four parsers at three payload sizes.</p>
+  <svg id="stdSpeed" width="100%" height="420" viewBox="0 0 1100 420"></svg>
+</div>
+
+<!-- JSON5: Speed -->
+<div class="chart-section">
+  <h2>JSON5 Parsing — Speed (ns/op)</h2>
+  <p class="desc">Lower is better. Parsing JSON5 (unquoted keys, trailing commas, comments) with the three JSON5 parsers.</p>
+  <svg id="j5Speed" width="100%" height="420" viewBox="0 0 1100 420"></svg>
+</div>
+
+<div class="grid">
+  <!-- Standard JSON: Memory -->
+  <div class="chart-section">
+    <h2>Std JSON — Memory (B/op)</h2>
+    <p class="desc">Lower is better.</p>
+    <svg id="stdMem" width="100%" height="380" viewBox="0 0 540 380"></svg>
+  </div>
+  <!-- JSON5: Memory -->
+  <div class="chart-section">
+    <h2>JSON5 — Memory (B/op)</h2>
+    <p class="desc">Lower is better.</p>
+    <svg id="j5Mem" width="100%" height="380" viewBox="0 0 540 380"></svg>
+  </div>
+  <!-- Standard JSON: Allocs -->
+  <div class="chart-section">
+    <h2>Std JSON — Allocations (allocs/op)</h2>
+    <p class="desc">Lower is better.</p>
+    <svg id="stdAlloc" width="100%" height="380" viewBox="0 0 540 380"></svg>
+  </div>
+  <!-- JSON5: Allocs -->
+  <div class="chart-section">
+    <h2>JSON5 — Allocations (allocs/op)</h2>
+    <p class="desc">Lower is better.</p>
+    <svg id="j5Alloc" width="100%" height="380" viewBox="0 0 540 380"></svg>
+  </div>
+</div>
+
+<p class="note">
+  <strong>Test setup:</strong> 5 / 50 / 500 key-value pairs per object, plus a nested object and array.
+  Standard JSON uses quoted keys; JSON5 uses unquoted keys, trailing commas, and single-line comments.<br>
+  <strong>encoding/json</strong> is excluded from JSON5 charts since it cannot parse JSON5 syntax.
+</p>
+
+<script>
+const C = {
+  builtin:  '#4C78A8',
+  shoobyban:'#E45756',
+  titanous: '#54A24B',
+  furukawa: '#EECA3B',
+};
+
+// Averaged data from 3 runs (post-optimization)
+const data = {
+  stdSpeed: {
+    groups: ['Small (5)', 'Medium (50)', 'Large (500)'],
+    series: [
+      { name: 'encoding/json', color: C.builtin,   values: [1499, 6556, 67456] },
+      { name: 'shoobyban',     color: C.shoobyban, values: [1267, 5582, 52472] },
+      { name: 'titanous',      color: C.titanous,  values: [1639, 7362, 73804] },
+      { name: 'furukawa',      color: C.furukawa,   values: [1733, 8002, 79956] },
+    ]
+  },
+  j5Speed: {
+    groups: ['Small (5)', 'Medium (50)', 'Large (500)'],
+    series: [
+      { name: 'shoobyban', color: C.shoobyban, values: [1557, 6819, 61710] },
+      { name: 'titanous',  color: C.titanous,  values: [1763, 7694, 76523] },
+      { name: 'furukawa',  color: C.furukawa,   values: [1824, 8164, 81814] },
+    ]
+  },
+  stdMem: {
+    groups: ['Small', 'Medium', 'Large'],
+    series: [
+      { name: 'encoding/json', color: C.builtin,   values: [1888, 6848, 95104] },
+      { name: 'shoobyban',     color: C.shoobyban, values: [4592, 21376, 144160] },
+      { name: 'titanous',      color: C.titanous,  values: [2000, 6960, 95216] },
+      { name: 'furukawa',      color: C.furukawa,   values: [2056, 7336, 99192] },
+    ]
+  },
+  j5Mem: {
+    groups: ['Small', 'Medium', 'Large'],
+    series: [
+      { name: 'shoobyban', color: C.shoobyban, values: [5488, 24192, 144160] },
+      { name: 'titanous',  color: C.titanous,  values: [2000, 6960, 95216] },
+      { name: 'furukawa',  color: C.furukawa,   values: [2000, 6960, 95216] },
+    ]
+  },
+  stdAlloc: {
+    groups: ['Small', 'Medium', 'Large'],
+    series: [
+      { name: 'encoding/json', color: C.builtin,   values: [42, 181, 1539] },
+      { name: 'shoobyban',     color: C.shoobyban, values: [19, 68, 525] },
+      { name: 'titanous',      color: C.titanous,  values: [42, 181, 1539] },
+      { name: 'furukawa',      color: C.furukawa,   values: [54, 238, 2046] },
+    ]
+  },
+  j5Alloc: {
+    groups: ['Small', 'Medium', 'Large'],
+    series: [
+      { name: 'shoobyban', color: C.shoobyban, values: [19, 68, 525] },
+      { name: 'titanous',  color: C.titanous,  values: [42, 181, 1539] },
+      { name: 'furukawa',  color: C.furukawa,   values: [42, 181, 1539] },
+    ]
+  },
+};
+
+function fmt(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e4) return (n / 1e3).toFixed(1) + 'K';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toString();
+}
+
+function drawGroupedBar(svgId, dataset, viewW, viewH) {
+  const svg = document.getElementById(svgId);
+  const margin = { top: 30, right: 30, bottom: 50, left: 70 };
+  const w = viewW - margin.left - margin.right;
+  const h = viewH - margin.top - margin.bottom;
+
+  const { groups, series } = dataset;
+  const nGroups = groups.length;
+  const nBars = series.length;
+  const maxVal = Math.max(...series.flatMap(s => s.values)) * 1.15;
+
+  // scales
+  const groupW = w / nGroups;
+  const gap = groupW * 0.15;
+  const barAreaW = groupW - gap * 2;
+  const barW = barAreaW / nBars - 2;
+
+  const yScale = v => h - (v / maxVal) * h;
+
+  let out = `<g transform="translate(${margin.left},${margin.top})">`;
+
+  // grid lines
+  const ticks = 5;
+  for (let i = 0; i <= ticks; i++) {
+    const val = (maxVal / ticks) * i;
+    const y = yScale(val);
+    out += `<line x1="0" y1="${y}" x2="${w}" y2="${y}" class="grid-line"/>`;
+    out += `<text x="-8" y="${y + 4}" text-anchor="end" class="axis-label">${fmt(Math.round(val))}</text>`;
+  }
+
+  // bars
+  for (let g = 0; g < nGroups; g++) {
+    const gx = g * groupW;
+    // group label
+    out += `<text x="${gx + groupW / 2}" y="${h + 30}" class="group-label">${groups[g]}</text>`;
+
+    for (let s = 0; s < nBars; s++) {
+      const val = series[s].values[g];
+      const bx = gx + gap + s * (barW + 2);
+      const by = yScale(val);
+      const bh = h - by;
+      out += `<rect class="bar" x="${bx}" y="${by}" width="${barW}" height="${bh}" fill="${series[s].color}" rx="2">`;
+      out += `<title>${series[s].name}: ${val.toLocaleString()}</title></rect>`;
+      // value label
+      out += `<text x="${bx + barW / 2}" y="${by - 5}" class="value-label">${fmt(val)}</text>`;
+    }
+  }
+
+  // axes
+  out += `<line x1="0" y1="${h}" x2="${w}" y2="${h}" stroke="#adb5bd" stroke-width="1"/>`;
+  out += `<line x1="0" y1="0" x2="0" y2="${h}" stroke="#adb5bd" stroke-width="1"/>`;
+
+  out += `</g>`;
+  svg.innerHTML = out;
+}
+
+// Draw all charts
+drawGroupedBar('stdSpeed', data.stdSpeed, 1100, 420);
+drawGroupedBar('j5Speed', data.j5Speed, 1100, 420);
+drawGroupedBar('stdMem', data.stdMem, 540, 380);
+drawGroupedBar('j5Mem', data.j5Mem, 540, 380);
+drawGroupedBar('stdAlloc', data.stdAlloc, 540, 380);
+drawGroupedBar('j5Alloc', data.j5Alloc, 540, 380);
+</script>
+</body>
+</html>

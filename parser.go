@@ -7,16 +7,19 @@ import (
 	"strings"
 )
 
+// Deprecated: Use [Unmarshal] (lowercase 'm') or [Decode] for an encoding/json-compatible API.
 func UnMarshal(json5 string) (any, error) {
 	allTokens := Tokenize(json5)
 
-	// Filter out comment tokens so the parser handles JSON5 comments
-	tokens := make([]Token, 0, len(allTokens))
+	// Filter out comment tokens in-place to avoid a second slice allocation.
+	n := 0
 	for _, t := range allTokens {
 		if t.Type != TOKEN_COMMENT {
-			tokens = append(tokens, t)
+			allTokens[n] = t
+			n++
 		}
 	}
+	tokens := allTokens[:n]
 
 	tokenLen := len(tokens)
 
@@ -64,7 +67,8 @@ func UnMarshal(json5 string) (any, error) {
 	return nil, fmt.Errorf("expected '{', '[', number, null or boolean but found '%s'", tokens[0].Value)
 }
 
-// Unmarshal is an alias for UnMarshal that follows Go naming conventions.
+// Unmarshal parses JSON5 text and returns the value as a generic any.
+// For an encoding/json-compatible API that decodes into a typed Go value, use [Decode].
 func Unmarshal(json5 string) (any, error) {
 	return UnMarshal(json5)
 }

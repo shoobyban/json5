@@ -8,7 +8,7 @@ It supports the JSON5 specification, including unquoted keys, escape sequences i
 
 ## Features
 
-As TinyGo does not support reflection, the parser does not use reflection to convert JSON5 tokens into Go native types. Instead, it uses a simple recursive descent parser to convert JSON5 tokens into `map[string]interface{}`, `[]interface{}`, and `string`, `int`, `float64`, `bool`, `nil`.
+As TinyGo does not support reflection, the parser does not use reflection to convert JSON5 tokens into Go native types. Instead, it uses a simple recursive descent parser to convert JSON5 tokens into `map[string]any`, `[]any`, and `string`, `int`, `float64`, `bool`, `nil`.
 As I'm lazy, it uses strings as input, feel free to change it to `io.Reader` if you want to parse large files (not an issue for TinyGo or at least in my use case). Pull requests are always welcome.
 
 - **JSON5 Tokenizer**:
@@ -19,6 +19,63 @@ As I'm lazy, it uses strings as input, feel free to change it to `io.Reader` if 
   - Parses escape sequences in strings, including `\n`, `\t`, `\\`, etc.
   - Parses hexadecimal numbers (e.g., `0x1E`).
   - Parses Unicode escape sequences in strings (e.g., `\u{1F600}`, `\U0X1F4A9`).
+
+## encoding/json-Compatible API
+
+For users migrating from `encoding/json` or who prefer its conventions, the library provides a compatibility layer with familiar signatures. These functions accept `[]byte` and decode into typed Go values, including structs with `json` tags.
+
+### Decode (like json.Unmarshal)
+
+```go
+type Config struct {
+    Host string `json:"host"`
+    Port int    `json:"port"`
+}
+
+var cfg Config
+err := json5.Decode([]byte(`{
+    // server settings
+    host: "localhost",
+    port: 8080,
+}`), &cfg)
+// cfg.Host == "localhost", cfg.Port == 8080
+```
+
+`Decode` supports `*any`, `*map[string]any`, `*[]any`, scalar pointers (`*string`, `*bool`, `*int`, `*float64`), and structs (via `encoding/json` round-trip).
+
+### Encode / EncodeIndent (like json.Marshal / json.MarshalIndent)
+
+```go
+data := map[string]any{"name": "Alice", "active": true}
+
+b, err := json5.Encode(data)
+// b == []byte(`{active: true, name: "Alice"}`)
+
+b, err = json5.EncodeIndent(data, "", "  ")
+// b == []byte("{\n  active: true,\n  name: \"Alice\",\n}")
+```
+
+### Valid (like json.Valid)
+
+```go
+json5.Valid([]byte(`{key: "value",}`))  // true  (trailing comma OK)
+json5.Valid([]byte(`{key: }`))          // false
+```
+
+### API Comparison
+
+| `encoding/json`                             | `json5` equivalent       |
+| ------------------------------------------- | ------------------------ |
+| `json.Unmarshal([]byte, any) error`         | `json5.Decode`           |
+| `json.Marshal(any) ([]byte, error)`         | `json5.Encode`           |
+| `json.MarshalIndent(any, "", " ") (…)`      | `json5.EncodeIndent`     |
+| `json.Valid([]byte) bool`                    | `json5.Valid`            |
+| `json.Unmarshal` into `any`                 | `json5.Unmarshal` (original) |
+| `json.Marshal` returning `string`           | `json5.Marshal` (original)   |
+
+## Deprecation Notice
+
+`UnMarshal` (capital M) is **deprecated**. Use `Unmarshal` or `Decode` instead. `UnMarshal` will continue to work but may be removed in a future major version.
 
 ## Example
 
@@ -50,7 +107,7 @@ func main() {
 		        key24: "Hello, \U{0x1F600}world!",
 	}`
 
-	result, err := json5.UnMarshal(input)
+	result, err := json5.Unmarshal(input)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -128,18 +185,18 @@ import (
 )
 
 func main() {
-    data := map[string]interface{}{
+    data := map[string]any{
         "name": "John Doe",
         "age": 42,
         "married": true,
         "children": nil,
-        "address": map[string]interface{}{
+        "address": map[string]any{
             "city": "New York",
             "zipcode": 10001,
         },
-        "favorites": []interface{}{
+        "favorites": []any{
             "pizza", 42, false, nil,
-            map[string]interface{}{
+            map[string]any{
                 "item": "book",
                 "price": 10.99,
                 "in_stock": true,
@@ -147,7 +204,7 @@ func main() {
         },
     }
 
-    // there is a Marshal(value interface{}) function as well that does not indent the output
+    // there is a Marshal(value any) function as well that does not indent the output
     result, err := json5.MarshalIndent(data, "  ")
     if err != nil {
         fmt.Println("Error:", err)

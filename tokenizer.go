@@ -116,81 +116,104 @@ func isIdentifierPart(ch rune) bool {
 // Also handles line continuations (backslash followed by a line terminator including
 // LF, CR, CRLF, LS \u2028, and PS \u2029).
 func processEscapeSequences(input string) (string, error) {
+	// Fast path: if no backslash, the string has no escape sequences.
+	if !strings.Contains(input, "\\") {
+		return input, nil
+	}
+
+	// Use byte-level iteration with utf8.DecodeRuneInString to avoid
+	// allocating a []rune copy of the entire input.
 	var result strings.Builder
-	runes := []rune(input)
-	length := len(runes)
+	result.Grow(len(input)) // pre-allocate to input size (escapes shrink output)
+	length := len(input)
 
-	for i := 0; i < length; i++ {
-		ch := runes[i]
+	for i := 0; i < length; {
+		ch, size := utf8.DecodeRuneInString(input[i:])
 
-		if ch == '\\' && i+1 < length {
-			nextCh := runes[i+1]
+		if ch == '\\' && i+size < length {
+			nextCh, nextSize := utf8.DecodeRuneInString(input[i+size:])
 			switch nextCh {
 			case 'n':
 				result.WriteByte('\n')
-				i++
+				i += size + nextSize
 			case 'r':
 				result.WriteByte('\r')
-				i++
+				i += size + nextSize
 			case 't':
 				result.WriteByte('\t')
-				i++
+				i += size + nextSize
 			case '\\':
 				result.WriteByte('\\')
-				i++
+				i += size + nextSize
 			case '"':
 				result.WriteByte('"')
-				i++
+				i += size + nextSize
 			case '\'':
 				result.WriteByte('\'')
-				i++
+				i += size + nextSize
 			case '/':
 				result.WriteByte('/')
-				i++
+				i += size + nextSize
 			case 'b':
 				result.WriteByte('\b')
-				i++
+				i += size + nextSize
 			case 'f':
 				result.WriteByte('\f')
-				i++
+				i += size + nextSize
 			case 'v':
 				result.WriteByte('\v')
-				i++
+				i += size + nextSize
 			case '0':
 				// \0 is only valid when NOT followed by another digit (to avoid octal ambiguity)
-				if i+2 < length && isDigit(runes[i+2]) {
-					return "", fmt.Errorf("invalid escape sequence: \\0 followed by digit")
+				peekPos := i + size + nextSize
+				if peekPos < length {
+					peekCh, _ := utf8.DecodeRuneInString(input[peekPos:])
+					if isDigit(peekCh) {
+						return "", fmt.Errorf("invalid escape sequence: \\0 followed by digit")
+					}
 				}
 				result.WriteByte(0)
-				i++
+				i += size + nextSize
 			case '\n':
 				// Line continuation: backslash + LF — both are removed
-				i++
+				i += size + nextSize
 			case '\r':
 				// Line continuation: backslash + CR (optionally followed by LF)
-				i++ // now i points to the \r position; next iteration i++ skips past it
-				if i+1 < length && runes[i+1] == '\n' {
-					i++ // also skip the \n in CRLF
+				i += size + nextSize
+				if i < length {
+					peekCh, peekSize := utf8.DecodeRuneInString(input[i:])
+					if peekCh == '\n' {
+						i += peekSize // also skip the \n in CRLF
+					}
 				}
 			case '\u2028', '\u2029':
 				// Line continuation: backslash + LS or PS
-				i++
+				i += size + nextSize
 			case 'u', 'U':
 				// Handle \uXXXX, \UXXXXXXXX, \u{0xXXXX}, \U{0xXXXX}
-				parsed, advance, err := parseUnicodeEscape(runes, i)
+				// parseUnicodeEscape still uses []rune but only on the small escape sequence.
+				runes := []rune(input[i:])
+				parsed, advance, err := parseUnicodeEscape(runes, 0)
 				if err != nil {
 					return "", err
 				}
 				result.WriteRune(parsed)
-				i = advance
+				// Convert rune offset back to byte offset
+				byteAdvance := 0
+				for ri := 0; ri <= advance; ri++ {
+					_, sz := utf8.DecodeRuneInString(input[i+byteAdvance:])
+					byteAdvance += sz
+				}
+				i += byteAdvance
 			default:
 				// Unknown escape: preserve backslash and the character
 				result.WriteRune(ch)
 				result.WriteRune(nextCh)
-				i++
+				i += size + nextSize
 			}
 		} else {
 			result.WriteRune(ch)
+			i += size
 		}
 	}
 
@@ -269,7 +292,8 @@ func consumeExponent(input string, i int) int {
 // It iterates over the input using proper rune decoding so that multi-byte
 // Unicode whitespace characters (e.g. \u00A0, \u2028) are handled correctly.
 func Tokenize(input string) []Token {
-	var tokens []Token
+	// Pre-allocate token slice: rough estimate of 1 token per 5 bytes.
+	tokens := make([]Token, 0, len(input)/5+8)
 	length := len(input)
 	i := 0
 

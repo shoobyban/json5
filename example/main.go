@@ -23,7 +23,9 @@ func main() {
 		        key24: "Hello, \U{0x1F600}world!",
 	}`
 
-	result, err := json5.UnMarshal(input)
+	// Decode into a generic map using the encoding/json-compatible API
+	var result map[string]any
+	err := json5.Decode([]byte(input), &result)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -31,14 +33,17 @@ func main() {
 
 	fmt.Printf("Parsed result: %+v\n", result)
 
-	m, err := json5.MarshalIndent(result, "  ")
+	// Encode with indentation using the encoding/json-compatible API
+	m, err := json5.EncodeIndent(result, "", "  ")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
-	fmt.Println(m)
+	fmt.Println(string(m))
 
-	result2, err := json5.UnMarshal(`["a", 'b', 1]`)
+	// Decode an array
+	var result2 []any
+	err = json5.Decode([]byte(`["a", 'b', 1]`), &result2)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -46,7 +51,9 @@ func main() {
 
 	fmt.Printf("Parsed result: %+v\n", result2)
 
-	result3, err := json5.UnMarshal(`'a'`)
+	// Decode a scalar string
+	var result3 string
+	err = json5.Decode([]byte(`'a'`), &result3)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -54,7 +61,9 @@ func main() {
 
 	fmt.Printf("Parsed result: %+v\n", result3)
 
-	result4, err := json5.UnMarshal(`42`)
+	// Decode a scalar number
+	var result4 int
+	err = json5.Decode([]byte(`42`), &result4)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -62,11 +71,7 @@ func main() {
 
 	fmt.Printf("Parsed result: %+v\n", result4)
 
-	result5, err := json5.UnMarshal(``)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-
-	fmt.Printf("Parsed result: %+v\n", result5)
+	// Validate JSON5
+	fmt.Printf("Valid: %v\n", json5.Valid([]byte(`{key: "value",}`)))
+	fmt.Printf("Valid: %v\n", json5.Valid([]byte(`{key: }`)))
 }

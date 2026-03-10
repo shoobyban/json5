@@ -233,7 +233,7 @@ func TestRoundTripInfinity(t *testing.T) {
 	marshaled, err := Marshal(math.Inf(1))
 	assert.NoError(t, err)
 
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, math.Inf(1), result)
 }
@@ -242,7 +242,7 @@ func TestRoundTripNegativeInfinity(t *testing.T) {
 	marshaled, err := Marshal(math.Inf(-1))
 	assert.NoError(t, err)
 
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, math.Inf(-1), result)
 }
@@ -251,7 +251,7 @@ func TestRoundTripNaN(t *testing.T) {
 	marshaled, err := Marshal(math.NaN())
 	assert.NoError(t, err)
 
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.True(t, math.IsNaN(result.(float64)))
 }
@@ -301,7 +301,7 @@ func TestRoundTripBackspace(t *testing.T) {
 	original := "a\bb"
 	marshaled, err := Marshal(original)
 	assert.NoError(t, err)
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -310,7 +310,7 @@ func TestRoundTripFormFeed(t *testing.T) {
 	original := "a\fb"
 	marshaled, err := Marshal(original)
 	assert.NoError(t, err)
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -319,7 +319,7 @@ func TestRoundTripVerticalTab(t *testing.T) {
 	original := "a\vb"
 	marshaled, err := Marshal(original)
 	assert.NoError(t, err)
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -328,7 +328,7 @@ func TestRoundTripNullByte(t *testing.T) {
 	original := "a\x00b"
 	marshaled, err := Marshal(original)
 	assert.NoError(t, err)
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -405,7 +405,7 @@ func TestRoundTripComplexObject(t *testing.T) {
 	}
 	marshaled, err := Marshal(input)
 	assert.NoError(t, err)
-	parsed, err := UnMarshal(marshaled)
+	parsed, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, input, parsed)
 }
@@ -417,7 +417,7 @@ func TestRoundTripIndentedComplexObject(t *testing.T) {
 	}
 	marshaled, err := MarshalIndent(input, "  ")
 	assert.NoError(t, err)
-	parsed, err := UnMarshal(marshaled)
+	parsed, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, input, parsed)
 }
@@ -436,7 +436,7 @@ func TestRoundTripStringWithSlash(t *testing.T) {
 	original := "hello/world"
 	marshaled, err := Marshal(original)
 	assert.NoError(t, err)
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -451,7 +451,7 @@ func TestMarshalStringAllControlChars(t *testing.T) {
 	assert.Equal(t, `"\b\f\v\0\t\n\r"`, marshaled)
 
 	// Round-trip
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -462,7 +462,7 @@ func TestRoundTripMultiByteString(t *testing.T) {
 	original := "hello 🌍 café 日本語"
 	marshaled, err := Marshal(original)
 	assert.NoError(t, err)
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, original, result)
 }
@@ -473,7 +473,7 @@ func TestRoundTripSpecialNumbersInArray(t *testing.T) {
 	input := []any{math.Inf(1), math.Inf(-1), math.NaN()}
 	marshaled, err := Marshal(input)
 	assert.NoError(t, err)
-	result, err := UnMarshal(marshaled)
+	result, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	arr := result.([]any)
 	assert.Equal(t, math.Inf(1), arr[0])

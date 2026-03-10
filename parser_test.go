@@ -25,7 +25,7 @@ func TestParseJSON5Object(t *testing.T) {
         "favorites": ["pizza", 42, false, null, {"item": "book", price: 10.99, "in_stock": true,}]
     }`
 
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	if err != nil {
 		t.Fatalf("Error parsing JSON5 object: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestParseJSON5Object(t *testing.T) {
 func TestParseJSON5Array(t *testing.T) {
 	input := `["a", 'b', 1]`
 
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	if err != nil {
 		t.Fatalf("Error parsing JSON5 array: %v", err)
 	}
@@ -61,7 +61,7 @@ func TestParseJSON5Array(t *testing.T) {
 func TestParseJSON5String(t *testing.T) {
 	input := `'a'`
 
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	if err != nil {
 		t.Fatalf("Error parsing JSON5 string: %v", err)
 	}
@@ -74,7 +74,7 @@ func TestParseJSON5String(t *testing.T) {
 func TestParseJSON5Number(t *testing.T) {
 	input := `42`
 
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	if err != nil {
 		t.Fatalf("Error parsing JSON5 number: %v", err)
 	}
@@ -85,55 +85,55 @@ func TestParseJSON5Number(t *testing.T) {
 }
 
 func TestParseEmptyInput(t *testing.T) {
-	result, err := UnMarshal("")
+	result, err := Unmarshal("")
 	assert.NoError(t, err)
 	assert.Nil(t, result)
 }
 
 func TestParseWhitespaceOnly(t *testing.T) {
-	result, err := UnMarshal("   \t\n  ")
+	result, err := Unmarshal("   \t\n  ")
 	assert.NoError(t, err)
 	assert.Nil(t, result)
 }
 
 func TestParseBoolTrue(t *testing.T) {
-	result, err := UnMarshal("true")
+	result, err := Unmarshal("true")
 	assert.NoError(t, err)
 	assert.Equal(t, true, result)
 }
 
 func TestParseBoolFalse(t *testing.T) {
-	result, err := UnMarshal("false")
+	result, err := Unmarshal("false")
 	assert.NoError(t, err)
 	assert.Equal(t, false, result)
 }
 
 func TestParseNull(t *testing.T) {
-	result, err := UnMarshal("null")
+	result, err := Unmarshal("null")
 	assert.NoError(t, err)
 	assert.Nil(t, result)
 }
 
 func TestParseFloat(t *testing.T) {
-	result, err := UnMarshal("3.14")
+	result, err := Unmarshal("3.14")
 	assert.NoError(t, err)
 	assert.Equal(t, 3.14, result)
 }
 
 func TestParseNegativeNumber(t *testing.T) {
-	result, err := UnMarshal("-7")
+	result, err := Unmarshal("-7")
 	assert.NoError(t, err)
 	assert.Equal(t, -7, result)
 }
 
 func TestParseNegativeFloat(t *testing.T) {
-	result, err := UnMarshal("-2.5")
+	result, err := Unmarshal("-2.5")
 	assert.NoError(t, err)
 	assert.Equal(t, -2.5, result)
 }
 
 func TestParseHexNumber(t *testing.T) {
-	result, err := UnMarshal("0xFF")
+	result, err := Unmarshal("0xFF")
 	assert.NoError(t, err)
 	assert.Equal(t, 255, result)
 }
@@ -143,7 +143,7 @@ func TestParseObjectWithComments(t *testing.T) {
 		// single-line comment
 		key: "value",
 	}`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj, ok := result.(map[string]any)
 	assert.True(t, ok)
@@ -156,7 +156,7 @@ func TestParseObjectWithMultiLineComment(t *testing.T) {
 		   line comment */
 		key: "value",
 	}`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj, ok := result.(map[string]any)
 	assert.True(t, ok)
@@ -173,7 +173,7 @@ func TestUnmarshalAlias(t *testing.T) {
 
 func TestParseObjectWithoutComments(t *testing.T) {
 	input := `{key: "value", num: 1}`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj, ok := result.(map[string]any)
 	assert.True(t, ok)
@@ -182,7 +182,7 @@ func TestParseObjectWithoutComments(t *testing.T) {
 }
 
 func TestParseEmptyObject(t *testing.T) {
-	result, err := UnMarshal("{}")
+	result, err := Unmarshal("{}")
 	assert.NoError(t, err)
 	obj, ok := result.(map[string]any)
 	assert.True(t, ok)
@@ -190,7 +190,7 @@ func TestParseEmptyObject(t *testing.T) {
 }
 
 func TestParseEmptyArray(t *testing.T) {
-	result, err := UnMarshal("[]")
+	result, err := Unmarshal("[]")
 	assert.NoError(t, err)
 	arr, ok := result.([]any)
 	assert.True(t, ok)
@@ -199,7 +199,7 @@ func TestParseEmptyArray(t *testing.T) {
 
 func TestParseNestedArray(t *testing.T) {
 	input := `[[1, 2], [3, 4]]`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	arr, ok := result.([]any)
 	assert.True(t, ok)
@@ -211,7 +211,7 @@ func TestParseNestedArray(t *testing.T) {
 
 func TestParseObjectMissingColon(t *testing.T) {
 	input := `{key "value"}`
-	_, err := UnMarshal(input)
+	_, err := Unmarshal(input)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "expected ':'")
 }
@@ -219,20 +219,20 @@ func TestParseObjectMissingColon(t *testing.T) {
 func TestParseObjectBadToken(t *testing.T) {
 	// A non-string token where a key is expected
 	input := `{: "value"}`
-	_, err := UnMarshal(input)
+	_, err := Unmarshal(input)
 	assert.Error(t, err)
 }
 
 func TestParseObjectMissingCommaOrBrace(t *testing.T) {
 	input := `{key: "value" other: "val"}`
-	_, err := UnMarshal(input)
+	_, err := Unmarshal(input)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "expected ',' or '}'")
 }
 
 func TestParseArrayMissingCommaOrBracket(t *testing.T) {
 	input := `[1 2]`
-	_, err := UnMarshal(input)
+	_, err := Unmarshal(input)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "expected ',' or ']'")
 }
@@ -240,20 +240,20 @@ func TestParseArrayMissingCommaOrBracket(t *testing.T) {
 func TestParseUnexpectedToken(t *testing.T) {
 	// A lone unexpected character at top level
 	input := `@`
-	_, err := UnMarshal(input)
+	_, err := Unmarshal(input)
 	assert.Error(t, err)
 }
 
 func TestParseValueUnexpectedToken(t *testing.T) {
 	// Inside an array, an unexpected comma-as-value scenario
 	input := `{key: }`
-	_, err := UnMarshal(input)
+	_, err := Unmarshal(input)
 	assert.Error(t, err)
 }
 
 func TestParseObjectWithSingleQuoteKeys(t *testing.T) {
 	input := `{'key': 'value'}`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj, ok := result.(map[string]any)
 	assert.True(t, ok)
@@ -262,7 +262,7 @@ func TestParseObjectWithSingleQuoteKeys(t *testing.T) {
 
 func TestParseArrayWithMixedTypes(t *testing.T) {
 	input := `[1, "two", true, null, 3.14, {key: "val"}, [5]]`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	arr, ok := result.([]any)
 	assert.True(t, ok)
@@ -275,14 +275,14 @@ func TestParseArrayWithMixedTypes(t *testing.T) {
 }
 
 func TestParseScientificNotation(t *testing.T) {
-	result, err := UnMarshal("1e3")
+	result, err := Unmarshal("1e3")
 	assert.NoError(t, err)
 	assert.Equal(t, 1000.0, result)
 }
 
 func TestParseObjectTrailingComma(t *testing.T) {
 	input := `{a: 1, b: 2,}`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj, ok := result.(map[string]any)
 	assert.True(t, ok)
@@ -292,7 +292,7 @@ func TestParseObjectTrailingComma(t *testing.T) {
 
 func TestParseArrayTrailingComma(t *testing.T) {
 	input := `[1, 2, 3,]`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	arr, ok := result.([]any)
 	assert.True(t, ok)
@@ -317,98 +317,98 @@ func BenchmarkJSON(b *testing.B) {
 		}`
 
 	for i := 0; i < b.N; i++ {
-		UnMarshal(input)
+		Unmarshal(input)
 	}
 }
 
 // --- JSON5 Number Features ---
 
 func TestParseInfinity(t *testing.T) {
-	result, err := UnMarshal(`Infinity`)
+	result, err := Unmarshal(`Infinity`)
 	assert.NoError(t, err)
 	assert.Equal(t, math.Inf(1), result)
 }
 
 func TestParseNegativeInfinity(t *testing.T) {
-	result, err := UnMarshal(`-Infinity`)
+	result, err := Unmarshal(`-Infinity`)
 	assert.NoError(t, err)
 	assert.Equal(t, math.Inf(-1), result)
 }
 
 func TestParsePositiveInfinity(t *testing.T) {
-	result, err := UnMarshal(`+Infinity`)
+	result, err := Unmarshal(`+Infinity`)
 	assert.NoError(t, err)
 	assert.Equal(t, math.Inf(1), result)
 }
 
 func TestParseNaN(t *testing.T) {
-	result, err := UnMarshal(`NaN`)
+	result, err := Unmarshal(`NaN`)
 	assert.NoError(t, err)
 	assert.True(t, math.IsNaN(result.(float64)))
 }
 
 func TestParseLeadingDecimalPoint(t *testing.T) {
-	result, err := UnMarshal(`.5`)
+	result, err := Unmarshal(`.5`)
 	assert.NoError(t, err)
 	assert.Equal(t, 0.5, result)
 }
 
 func TestParseTrailingDecimalPoint(t *testing.T) {
-	result, err := UnMarshal(`5.`)
+	result, err := Unmarshal(`5.`)
 	assert.NoError(t, err)
 	assert.Equal(t, 5.0, result)
 }
 
 func TestParsePositiveSign(t *testing.T) {
-	result, err := UnMarshal(`+42`)
+	result, err := Unmarshal(`+42`)
 	assert.NoError(t, err)
 	assert.Equal(t, 42, result)
 }
 
 func TestParsePositiveFloat(t *testing.T) {
-	result, err := UnMarshal(`+3.14`)
+	result, err := Unmarshal(`+3.14`)
 	assert.NoError(t, err)
 	assert.Equal(t, 3.14, result)
 }
 
 func TestParseExponentWithSign(t *testing.T) {
-	result, err := UnMarshal(`1e+2`)
+	result, err := Unmarshal(`1e+2`)
 	assert.NoError(t, err)
 	assert.Equal(t, 100.0, result)
 
-	result, err = UnMarshal(`1e-2`)
+	result, err = Unmarshal(`1e-2`)
 	assert.NoError(t, err)
 	assert.Equal(t, 0.01, result)
 
-	result, err = UnMarshal(`1E+3`)
+	result, err = Unmarshal(`1E+3`)
 	assert.NoError(t, err)
 	assert.Equal(t, 1000.0, result)
 }
 
 func TestParseNegativeHex(t *testing.T) {
-	result, err := UnMarshal(`-0xFF`)
+	result, err := Unmarshal(`-0xFF`)
 	assert.NoError(t, err)
 	assert.Equal(t, -255, result)
 }
 
 func TestParsePositiveHex(t *testing.T) {
-	result, err := UnMarshal(`+0xFF`)
+	result, err := Unmarshal(`+0xFF`)
 	assert.NoError(t, err)
 	assert.Equal(t, 255, result)
 }
 
 func TestParseSignedLeadingDot(t *testing.T) {
-	result, err := UnMarshal(`+.5`)
+	result, err := Unmarshal(`+.5`)
 	assert.NoError(t, err)
 	assert.Equal(t, 0.5, result)
 
-	result, err = UnMarshal(`-.5`)
+	result, err = Unmarshal(`-.5`)
 	assert.NoError(t, err)
 	assert.Equal(t, -0.5, result)
 }
 
 func TestParseLeadingDotWithExponent(t *testing.T) {
-	result, err := UnMarshal(`.5e2`)
+	result, err := Unmarshal(`.5e2`)
 	assert.NoError(t, err)
 	assert.Equal(t, 50.0, result)
 }
@@ -416,25 +416,25 @@ func TestParseLeadingDotWithExponent(t *testing.T) {
 // --- JSON5 String Features ---
 
 func TestParseEscapeBackspace(t *testing.T) {
-	result, err := UnMarshal(`"hello\bworld"`)
+	result, err := Unmarshal(`"hello\bworld"`)
 	assert.NoError(t, err)
 	assert.Equal(t, "hello\bworld", result)
 }
 
 func TestParseEscapeFormFeed(t *testing.T) {
-	result, err := UnMarshal(`"hello\fworld"`)
+	result, err := Unmarshal(`"hello\fworld"`)
 	assert.NoError(t, err)
 	assert.Equal(t, "hello\fworld", result)
 }
 
 func TestParseEscapeVerticalTab(t *testing.T) {
-	result, err := UnMarshal(`"hello\vworld"`)
+	result, err := Unmarshal(`"hello\vworld"`)
 	assert.NoError(t, err)
 	assert.Equal(t, "hello\vworld", result)
 }
 
 func TestParseEscapeNullChar(t *testing.T) {
-	result, err := UnMarshal(`"hello\0world"`)
+	result, err := Unmarshal(`"hello\0world"`)
 	assert.NoError(t, err)
 	assert.Equal(t, "hello\x00world", result)
 }
@@ -442,7 +442,7 @@ func TestParseEscapeNullChar(t *testing.T) {
 func TestParseLineContinuation(t *testing.T) {
 	// Backslash followed by newline should produce empty string (line continuation)
 	input := "\"hello\\\nworld\""
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	assert.Equal(t, "helloworld", result)
 }
@@ -450,7 +450,7 @@ func TestParseLineContinuation(t *testing.T) {
 func TestParseLineContinuationCRLF(t *testing.T) {
 	// Backslash followed by CR LF should produce empty string (line continuation)
 	input := "\"hello\\\r\nworld\""
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	assert.Equal(t, "helloworld", result)
 }
@@ -469,7 +469,7 @@ func TestParseObjectWithSpecialNumbers(t *testing.T) {
 		pos: +42,
 		exp: 1e+5,
 	}`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 
 	obj := result.(map[string]any)
@@ -486,7 +486,7 @@ func TestParseObjectWithSpecialNumbers(t *testing.T) {
 
 func TestParseArrayWithSpecialNumbers(t *testing.T) {
 	input := `[Infinity, -Infinity, NaN, .5, 5., +3, 1e+2]`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 
 	arr := result.([]any)
@@ -502,25 +502,25 @@ func TestParseArrayWithSpecialNumbers(t *testing.T) {
 // --- Edge case / negative tests ---
 
 func TestParseBarePlus(t *testing.T) {
-	_, err := UnMarshal("+")
+	_, err := Unmarshal("+")
 	assert.Error(t, err)
 }
 
 func TestParseBareMinus(t *testing.T) {
-	_, err := UnMarshal("-")
+	_, err := Unmarshal("-")
 	assert.Error(t, err)
 }
 
 func TestParseNullEscapeFollowedByDigit(t *testing.T) {
 	// \0 followed by a digit should produce an error
-	_, err := UnMarshal(`"\09"`)
+	_, err := Unmarshal(`"\09"`)
 	assert.Error(t, err)
 }
 
 func TestParseLineContinuationLS(t *testing.T) {
 	// Backslash followed by LS (\u2028) should be a line continuation
 	input := "\"hello\\\u2028world\""
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	assert.Equal(t, "helloworld", result)
 }
@@ -528,7 +528,7 @@ func TestParseLineContinuationLS(t *testing.T) {
 func TestParseLineContinuationPS(t *testing.T) {
 	// Backslash followed by PS (\u2029) should be a line continuation
 	input := "\"hello\\\u2029world\""
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	assert.Equal(t, "helloworld", result)
 }
@@ -536,7 +536,7 @@ func TestParseLineContinuationPS(t *testing.T) {
 func TestParseUnicodeWhitespace(t *testing.T) {
 	// Non-breaking space as separator between tokens
 	input := "{a:\u00A01}"
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj := result.(map[string]any)
 	assert.Equal(t, 1, obj["a"])
@@ -545,19 +545,19 @@ func TestParseUnicodeWhitespace(t *testing.T) {
 // --- Truncated input tests ---
 
 func TestParseTruncatedObject(t *testing.T) {
-	_, err := UnMarshal(`{a: 1`)
+	_, err := Unmarshal(`{a: 1`)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unexpected end of input")
 }
 
 func TestParseTruncatedObjectAfterKey(t *testing.T) {
-	_, err := UnMarshal(`{a`)
+	_, err := Unmarshal(`{a`)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unexpected end of input")
 }
 
 func TestParseTruncatedArray(t *testing.T) {
-	_, err := UnMarshal(`[1`)
+	_, err := Unmarshal(`[1`)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unexpected end of input")
 }
@@ -566,29 +566,29 @@ func TestParseTruncatedArray(t *testing.T) {
 
 func TestParseTruncatedObjectAfterColon(t *testing.T) {
 	// Object truncated right after colon — parseValue sees end of input
-	_, err := UnMarshal(`{a:`)
+	_, err := Unmarshal(`{a:`)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unexpected end of input")
 }
 
 func TestParseTruncatedNestedObject(t *testing.T) {
 	// Nested structure truncated mid-parse
-	_, err := UnMarshal(`[{a: 1`)
+	_, err := Unmarshal(`[{a: 1`)
 	assert.Error(t, err)
 }
 
 func TestParseTruncatedArrayInObject(t *testing.T) {
-	_, err := UnMarshal(`{a: [1, 2`)
+	_, err := Unmarshal(`{a: [1, 2`)
 	assert.Error(t, err)
 }
 
 func TestParseTruncatedObjectInArray(t *testing.T) {
-	_, err := UnMarshal(`[{a: 1`)
+	_, err := Unmarshal(`[{a: 1`)
 	assert.Error(t, err)
 }
 
 func TestParseTruncatedDeeplyNested(t *testing.T) {
-	_, err := UnMarshal(`{a: {b: {c:`)
+	_, err := Unmarshal(`{a: {b: {c:`)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unexpected end of input")
 }
@@ -601,7 +601,7 @@ func TestParseArrayWithSingleLineComment(t *testing.T) {
 		1,
 		2,
 	]`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	arr, ok := result.([]any)
 	assert.True(t, ok)
@@ -615,7 +615,7 @@ func TestParseArrayWithMultiLineComment(t *testing.T) {
 		1,
 		2,
 	]`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	arr, ok := result.([]any)
 	assert.True(t, ok)
@@ -624,7 +624,7 @@ func TestParseArrayWithMultiLineComment(t *testing.T) {
 
 func TestParseCommentBetweenKeyAndColon(t *testing.T) {
 	input := `{key /* comment */ : "value"}`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj := result.(map[string]any)
 	assert.Equal(t, "value", obj["key"])
@@ -632,7 +632,7 @@ func TestParseCommentBetweenKeyAndColon(t *testing.T) {
 
 func TestParseCommentBetweenColonAndValue(t *testing.T) {
 	input := `{key: /* comment */ "value"}`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj := result.(map[string]any)
 	assert.Equal(t, "value", obj["key"])
@@ -640,20 +640,20 @@ func TestParseCommentBetweenColonAndValue(t *testing.T) {
 
 func TestParseCommentBetweenArrayElements(t *testing.T) {
 	input := `[1, /* inline */ 2, 3]`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	arr := result.([]any)
 	assert.Equal(t, []any{1, 2, 3}, arr)
 }
 
 func TestParseCommentOnlyInput(t *testing.T) {
-	result, err := UnMarshal("// just a comment")
+	result, err := Unmarshal("// just a comment")
 	assert.NoError(t, err)
 	assert.Nil(t, result)
 }
 
 func TestParseMultipleCommentsOnlyInput(t *testing.T) {
-	result, err := UnMarshal("// comment 1\n/* comment 2 */")
+	result, err := Unmarshal("// comment 1\n/* comment 2 */")
 	assert.NoError(t, err)
 	assert.Nil(t, result)
 }
@@ -671,7 +671,7 @@ func TestParseDeeplyNestedObjects(t *testing.T) {
 	for i := 0; i < depth; i++ {
 		sb.WriteString(`}`)
 	}
-	result, err := UnMarshal(sb.String())
+	result, err := Unmarshal(sb.String())
 	assert.NoError(t, err)
 	// Walk down to the leaf
 	current := result
@@ -694,7 +694,7 @@ func TestParseDeeplyNestedArrays(t *testing.T) {
 	for i := 0; i < depth; i++ {
 		sb.WriteString(`]`)
 	}
-	result, err := UnMarshal(sb.String())
+	result, err := Unmarshal(sb.String())
 	assert.NoError(t, err)
 	current := result
 	for i := 0; i < depth; i++ {
@@ -711,7 +711,7 @@ func TestParseDeeplyNestedArrays(t *testing.T) {
 func TestParseUnterminatedString(t *testing.T) {
 	// Parser should handle unterminated string without panic
 	// The tokenizer produces a TOKEN_STRING even if unterminated
-	result, err := UnMarshal(`"unterminated`)
+	result, err := Unmarshal(`"unterminated`)
 	// Should not panic — either returns the partial string or an error
 	if err == nil {
 		assert.Equal(t, "unterminated", result)
@@ -722,7 +722,7 @@ func TestParseUnterminatedString(t *testing.T) {
 
 func TestParseEnSpaceWhitespace(t *testing.T) {
 	input := "{a:\u20021}"
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj := result.(map[string]any)
 	assert.Equal(t, 1, obj["a"])
@@ -730,7 +730,7 @@ func TestParseEnSpaceWhitespace(t *testing.T) {
 
 func TestParseIdeographicSpaceWhitespace(t *testing.T) {
 	input := "{a:\u30001}"
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj := result.(map[string]any)
 	assert.Equal(t, 1, obj["a"])
@@ -739,14 +739,14 @@ func TestParseIdeographicSpaceWhitespace(t *testing.T) {
 // --- Regression: Invalid hex numbers (#15) ---
 
 func TestParseInvalidHexNumber(t *testing.T) {
-	_, err := UnMarshal(`0xZZZZ`)
+	_, err := Unmarshal(`0xZZZZ`)
 	assert.Error(t, err)
 }
 
 func TestParseInvalidNumber(t *testing.T) {
 	// 123abc is tokenized as number(123) + string(abc).
 	// The parser only consumes the first top-level token, so it returns 123.
-	result, err := UnMarshal(`123abc`)
+	result, err := Unmarshal(`123abc`)
 	assert.NoError(t, err)
 	assert.Equal(t, 123, result)
 }
@@ -760,11 +760,11 @@ func TestRoundTripObjectWithComments(t *testing.T) {
 		/* age */
 		age: 30,
 	}`
-	parsed, err := UnMarshal(input)
+	parsed, err := Unmarshal(input)
 	assert.NoError(t, err)
 	marshaled, err := Marshal(parsed)
 	assert.NoError(t, err)
-	reparsed, err := UnMarshal(marshaled)
+	reparsed, err := Unmarshal(marshaled)
 	assert.NoError(t, err)
 	assert.Equal(t, parsed, reparsed)
 }
@@ -772,19 +772,19 @@ func TestRoundTripObjectWithComments(t *testing.T) {
 // --- Regression: Double sign produces error ---
 
 func TestParseDoublePlus(t *testing.T) {
-	_, err := UnMarshal("++1")
+	_, err := Unmarshal("++1")
 	assert.Error(t, err)
 }
 
 func TestParseDoubleMinus(t *testing.T) {
-	_, err := UnMarshal("--1")
+	_, err := Unmarshal("--1")
 	assert.Error(t, err)
 }
 
 // --- Regression: Empty hex number ---
 
 func TestParseEmptyHex(t *testing.T) {
-	_, err := UnMarshal("0x")
+	_, err := Unmarshal("0x")
 	assert.Error(t, err)
 }
 
@@ -792,20 +792,20 @@ func TestParseEmptyHex(t *testing.T) {
 
 func TestParseMalformedExponentNoDigits(t *testing.T) {
 	// 1e with no digits after exponent
-	_, err := UnMarshal("1e")
+	_, err := Unmarshal("1e")
 	assert.Error(t, err)
 }
 
 func TestParseMalformedExponentSignOnly(t *testing.T) {
 	// 1e+ with no digits after the sign
-	_, err := UnMarshal("1e+")
+	_, err := Unmarshal("1e+")
 	assert.Error(t, err)
 }
 
 // --- Regression: Trailing dot with exponent ---
 
 func TestParseTrailingDotWithExponent(t *testing.T) {
-	result, err := UnMarshal("5.e2")
+	result, err := Unmarshal("5.e2")
 	assert.NoError(t, err)
 	assert.Equal(t, 500.0, result)
 }
@@ -813,11 +813,11 @@ func TestParseTrailingDotWithExponent(t *testing.T) {
 // --- Regression: Signed leading dot with exponent ---
 
 func TestParseSignedLeadingDotWithExponent(t *testing.T) {
-	result, err := UnMarshal("+.5e2")
+	result, err := Unmarshal("+.5e2")
 	assert.NoError(t, err)
 	assert.Equal(t, 50.0, result)
 
-	result, err = UnMarshal("-.5e2")
+	result, err = Unmarshal("-.5e2")
 	assert.NoError(t, err)
 	assert.Equal(t, -50.0, result)
 }
@@ -826,7 +826,7 @@ func TestParseSignedLeadingDotWithExponent(t *testing.T) {
 
 func TestParseUnicodeKeyObject(t *testing.T) {
 	input := `{café: 42}`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj := result.(map[string]any)
 	assert.Equal(t, 42, obj["café"])
@@ -834,7 +834,7 @@ func TestParseUnicodeKeyObject(t *testing.T) {
 
 func TestParseCJKKeyObject(t *testing.T) {
 	input := `{名前: "太郎"}`
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	obj := result.(map[string]any)
 	assert.Equal(t, "太郎", obj["名前"])
@@ -845,7 +845,7 @@ func TestParseCJKKeyObject(t *testing.T) {
 func TestParseLineContinuationCR(t *testing.T) {
 	// Backslash + lone CR should be a line continuation
 	input := "\"hello\\\rworld\""
-	result, err := UnMarshal(input)
+	result, err := Unmarshal(input)
 	assert.NoError(t, err)
 	assert.Equal(t, "helloworld", result)
 }
@@ -853,7 +853,7 @@ func TestParseLineContinuationCR(t *testing.T) {
 // --- Regression: Slash escape round-trip ---
 
 func TestParseSlashEscape(t *testing.T) {
-	result, err := UnMarshal(`"hello\/world"`)
+	result, err := Unmarshal(`"hello\/world"`)
 	assert.NoError(t, err)
 	assert.Equal(t, "hello/world", result)
 }

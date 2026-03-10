@@ -43,8 +43,8 @@ func FuzzTokenize(f *testing.F) {
 	})
 }
 
-// FuzzUnMarshal ensures the parser never panics on arbitrary input.
-func FuzzUnMarshal(f *testing.F) {
+// FuzzUnmarshal ensures the parser never panics on arbitrary input.
+func FuzzUnmarshal(f *testing.F) {
 	// Seed corpus with valid and interesting inputs
 	f.Add(`{"key": "value"}`)
 	f.Add(`[1, 2, 3]`)
@@ -92,7 +92,7 @@ func FuzzUnMarshal(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		// Must not panic
-		result, err := UnMarshal(input)
+		result, err := Unmarshal(input)
 		if err != nil {
 			return
 		}
@@ -111,7 +111,7 @@ func FuzzMarshalRoundTrip(f *testing.F) {
 	f.Add(`{hex: 0xFF, dot: .5, trail: 5.}`)
 
 	f.Fuzz(func(t *testing.T, input string) {
-		result, err := UnMarshal(input)
+		result, err := Unmarshal(input)
 		if err != nil {
 			return
 		}
@@ -120,6 +120,6 @@ func FuzzMarshalRoundTrip(f *testing.F) {
 			return
 		}
 		// Re-parse the marshaled output — must not panic
-		_, _ = UnMarshal(marshaled)
+		_, _ = Unmarshal(marshaled)
 	})
 }
