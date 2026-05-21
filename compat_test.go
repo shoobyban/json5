@@ -35,6 +35,15 @@ func TestDecodeIntoAnyEmptyInput(t *testing.T) {
 	assert.Nil(t, v)
 }
 
+func TestDecodeIntoNonEmptyInterfaceReturnsError(t *testing.T) {
+	type named interface{ Name() string }
+
+	var v named
+	err := Decode([]byte(`{a: 1}`), &v)
+	assert.Error(t, err)
+	assert.Nil(t, v)
+}
+
 func TestDecodeIntoMap(t *testing.T) {
 	var m map[string]any
 	err := Decode([]byte(`{a: 1, b: "two"}`), &m)
