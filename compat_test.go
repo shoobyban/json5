@@ -21,6 +21,20 @@ func TestDecodeIntoAny(t *testing.T) {
 	assert.Equal(t, 42, m["num"])
 }
 
+func TestDecodeIntoAnyNull(t *testing.T) {
+	var v any = "sentinel"
+	err := Decode([]byte(`null`), &v)
+	assert.NoError(t, err)
+	assert.Nil(t, v)
+}
+
+func TestDecodeIntoAnyEmptyInput(t *testing.T) {
+	var v any = "sentinel"
+	err := Decode([]byte(``), &v)
+	assert.NoError(t, err)
+	assert.Nil(t, v)
+}
+
 func TestDecodeIntoMap(t *testing.T) {
 	var m map[string]any
 	err := Decode([]byte(`{a: 1, b: "two"}`), &m)
@@ -178,6 +192,12 @@ func TestDecodeInvalidJSON5(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestDecodeRejectsTrailingTokens(t *testing.T) {
+	var v any
+	err := Decode([]byte(`42 true`), &v)
+	assert.Error(t, err)
+}
+
 func TestDecodeJSON5Features(t *testing.T) {
 	// Decode should handle all JSON5 features: comments, unquoted keys,
 	// trailing commas, hex numbers, single-quoted strings.
@@ -322,6 +342,10 @@ func TestValidTrue(t *testing.T) {
 	for _, c := range cases {
 		assert.True(t, Valid([]byte(c)), "expected valid: %s", c)
 	}
+}
+
+func TestValidFalseWithTrailingTokens(t *testing.T) {
+	assert.False(t, Valid([]byte(`42 true`)))
 }
 
 func TestValidFalse(t *testing.T) {

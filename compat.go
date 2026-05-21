@@ -33,7 +33,11 @@ func Decode(data []byte, v any) error {
 
 	// Fast path: if the target is any / interface{}, just assign directly.
 	if elem.Kind() == reflect.Interface {
-		elem.Set(reflect.ValueOf(parsed))
+		if parsed == nil {
+			elem.Set(reflect.Zero(elem.Type()))
+		} else {
+			elem.Set(reflect.ValueOf(parsed))
+		}
 		return nil
 	}
 

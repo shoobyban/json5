@@ -244,6 +244,12 @@ func TestParseUnexpectedToken(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestUnmarshalRejectsTrailingTokens(t *testing.T) {
+	_, err := Unmarshal(`42 true`)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unexpected trailing token")
+}
+
 func TestParseValueUnexpectedToken(t *testing.T) {
 	// Inside an array, an unexpected comma-as-value scenario
 	input := `{key: }`
@@ -744,11 +750,9 @@ func TestParseInvalidHexNumber(t *testing.T) {
 }
 
 func TestParseInvalidNumber(t *testing.T) {
-	// 123abc is tokenized as number(123) + string(abc).
-	// The parser only consumes the first top-level token, so it returns 123.
-	result, err := Unmarshal(`123abc`)
-	assert.NoError(t, err)
-	assert.Equal(t, 123, result)
+	_, err := Unmarshal(`123abc`)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unexpected trailing token")
 }
 
 // --- Regression: Round-trip with comments (#4) ---

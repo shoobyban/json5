@@ -28,43 +28,38 @@ func UnMarshal(json5 string) (any, error) {
 	}
 
 	i := 1 // start from the second token (skip the first one we already checked)
-	if tokens[0].Type == TOKEN_LBRACE {
-		obj, err := parseObject(tokens, &i, tokenLen)
-		if err != nil {
-			return nil, err
-		}
-		return obj, nil
+	var (
+		result any
+		err    error
+	)
+
+	switch tokens[0].Type {
+	case TOKEN_LBRACE:
+		result, err = parseObject(tokens, &i, tokenLen)
+	case TOKEN_LBRACKET:
+		result, err = parseArray(tokens, &i, tokenLen)
+	case TOKEN_STRING:
+		result = tokens[0].Value
+	case TOKEN_NUMBER:
+		result, err = parseNumber(tokens[0].Value)
+	case TOKEN_TRUE:
+		result = true
+	case TOKEN_FALSE:
+		result = false
+	case TOKEN_NULL:
+		result = nil
+	default:
+		return nil, fmt.Errorf("expected '{', '[', number, null or boolean but found '%s'", tokens[0].Value)
 	}
 
-	if tokens[0].Type == TOKEN_LBRACKET {
-		arr, err := parseArray(tokens, &i, tokenLen)
-		if err != nil {
-			return nil, err
-		}
-		return arr, nil
+	if err != nil {
+		return nil, err
+	}
+	if i != tokenLen {
+		return nil, fmt.Errorf("unexpected trailing token: '%s'", tokens[i].Value)
 	}
 
-	if tokens[0].Type == TOKEN_STRING {
-		return tokens[0].Value, nil
-	}
-
-	if tokens[0].Type == TOKEN_NUMBER {
-		return parseNumber(tokens[0].Value)
-	}
-
-	if tokens[0].Type == TOKEN_TRUE {
-		return true, nil
-	}
-
-	if tokens[0].Type == TOKEN_FALSE {
-		return false, nil
-	}
-
-	if tokens[0].Type == TOKEN_NULL {
-		return nil, nil
-	}
-
-	return nil, fmt.Errorf("expected '{', '[', number, null or boolean but found '%s'", tokens[0].Value)
+	return result, nil
 }
 
 // Unmarshal parses JSON5 text and returns the value as a generic any.
