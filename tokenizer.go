@@ -364,6 +364,7 @@ func Tokenize(input string) []Token {
 			// We use rune decoding so multi-byte characters don't create false matches.
 			start := i
 			quote := ch
+			closed := false
 			i += size // skip opening quote
 			for i < length {
 				r, sz := utf8.DecodeRuneInString(input[i:])
@@ -372,10 +373,15 @@ func Tokenize(input string) []Token {
 					_, sz2 := utf8.DecodeRuneInString(input[i+sz:])
 					i += sz + sz2
 				} else if r == quote {
+					closed = true
 					break
 				} else {
 					i += sz
 				}
+			}
+			if !closed {
+				tokens = append(tokens, Token{Type: TOKEN_UNKNOWN, Value: "unterminated string"})
+				continue
 			}
 			quoteLen := utf8.RuneLen(quote)
 			i += quoteLen // skip closing quote

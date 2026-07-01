@@ -6,6 +6,8 @@ This is a simple JSON5 parser (and tokenizer if the parser is not good enough) i
 
 It supports the JSON5 specification, including unquoted keys, escape sequences in strings, booleans, `null`, and hexadecimal numbers.
 
+Development currently targets Go 1.25.x. The TinyGo example Makefile defaults to `go1.25.4` for reproducible local builds.
+
 ## Features
 
 As TinyGo does not support reflection, the parser does not use reflection to convert JSON5 tokens into Go native types. Instead, it uses a simple recursive descent parser to convert JSON5 tokens into `map[string]any`, `[]any`, and `string`, `int`, `float64`, `bool`, `nil`.
@@ -15,10 +17,11 @@ As I'm lazy, it uses strings as input, feel free to change it to `io.Reader` if 
   - Handles basic JSON5 syntax: braces, brackets, commas, colons.
   - Supports single-line (`//`) and multi-line (`/* ... */`) comments.
   - Recognizes strings, numbers, booleans (`true`, `false`), and `null` (returns `nil`).
-  - Supports unquoted keys in objects.
+  - Supports unquoted keys in objects, including keyword-style keys such as `true`, `false`, `null`, `Infinity`, and `NaN`.
   - Parses escape sequences in strings, including `\n`, `\t`, `\\`, etc.
   - Parses hexadecimal numbers (e.g., `0x1E`).
   - Parses Unicode escape sequences in strings (e.g., `\u{1F600}`, `\U0X1F4A9`).
+  - Rejects empty or comment-only documents and unterminated quoted strings as invalid input.
 
 ## encoding/json-Compatible API
 
@@ -60,6 +63,8 @@ b, err = json5.EncodeIndent(data, "", "  ")
 ```go
 json5.Valid([]byte(`{key: "value",}`))  // true  (trailing comma OK)
 json5.Valid([]byte(`{key: }`))          // false
+json5.Valid([]byte(``))                 // false
+json5.Valid([]byte(`// comment only`))  // false
 ```
 
 ### API Comparison

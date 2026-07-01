@@ -86,14 +86,22 @@ func TestParseJSON5Number(t *testing.T) {
 
 func TestParseEmptyInput(t *testing.T) {
 	result, err := Unmarshal("")
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Nil(t, result)
 }
 
 func TestParseWhitespaceOnly(t *testing.T) {
 	result, err := Unmarshal("   \t\n  ")
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Nil(t, result)
+	assert.EqualError(t, err, "unexpected end of input")
+}
+
+func TestParseCommentOnly(t *testing.T) {
+	result, err := Unmarshal("// comment only")
+	assert.Error(t, err)
+	assert.Nil(t, result)
+	assert.EqualError(t, err, "unexpected end of input")
 }
 
 func TestParseBoolTrue(t *testing.T) {
@@ -654,13 +662,13 @@ func TestParseCommentBetweenArrayElements(t *testing.T) {
 
 func TestParseCommentOnlyInput(t *testing.T) {
 	result, err := Unmarshal("// just a comment")
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "unexpected end of input")
 	assert.Nil(t, result)
 }
 
 func TestParseMultipleCommentsOnlyInput(t *testing.T) {
 	result, err := Unmarshal("// comment 1\n/* comment 2 */")
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "unexpected end of input")
 	assert.Nil(t, result)
 }
 
@@ -715,13 +723,21 @@ func TestParseDeeplyNestedArrays(t *testing.T) {
 // --- Regression: Unterminated strings through parser (#18) ---
 
 func TestParseUnterminatedString(t *testing.T) {
-	// Parser should handle unterminated string without panic
-	// The tokenizer produces a TOKEN_STRING even if unterminated
 	result, err := Unmarshal(`"unterminated`)
-	// Should not panic — either returns the partial string or an error
-	if err == nil {
-		assert.Equal(t, "unterminated", result)
-	}
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
+
+func TestParseKeywordKeys(t *testing.T) {
+	result, err := Unmarshal(`{true: 1, false: 2, null: 3, Infinity: 4, NaN: 5}`)
+	assert.NoError(t, err)
+	assert.Equal(t, map[string]any{
+		"true":     1,
+		"false":    2,
+		"null":     3,
+		"Infinity": 4,
+		"NaN":      5,
+	}, result)
 }
 
 // --- Regression: Unicode Zs whitespace in parser (#6) ---

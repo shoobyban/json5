@@ -2,12 +2,15 @@
 
 A lightweight JSON5 parser and marshaller for Go with full TinyGo support.
 
+Development currently targets Go 1.25.x. The TinyGo example Makefile defaults to `go1.25.4` for reproducible local builds.
+
 ## What is JSON5?
 
 JSON5 is a superset of JSON that makes configuration files more human-friendly. It adds features like:
 
 - **Comments** - Single-line (`//`) and multi-line (`/* */`)
 - **Unquoted keys** - Write `name: "value"` instead of `"name": "value"`
+- **Keyword keys** - Unquoted object keys like `true`, `false`, `null`, `Infinity`, and `NaN` are accepted
 - **Trailing commas** - No more syntax errors from that last comma
 - **Hexadecimal numbers** - Use `0xdecaf` for readability
 - **Multi-line strings** - Break long strings across lines
@@ -113,7 +116,11 @@ b, err = json5.EncodeIndent(data, "", "  ")
 ```go
 json5.Valid([]byte(`{key: "value",}`))  // true
 json5.Valid([]byte(`{key: }`))           // false
+json5.Valid([]byte(``))                  // false
+json5.Valid([]byte(`// comment only`))   // false
 ```
+
+Empty documents, comment-only input, and unterminated quoted strings are treated as invalid input.
 
 ## API Reference
 

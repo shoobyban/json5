@@ -24,7 +24,7 @@ func UnMarshal(json5 string) (any, error) {
 	tokenLen := len(tokens)
 
 	if tokenLen == 0 {
-		return nil, nil
+		return nil, fmt.Errorf("unexpected end of input")
 	}
 
 	i := 1 // start from the second token (skip the first one we already checked)
@@ -80,11 +80,10 @@ func parseObject(tokens []Token, i *int, tokenLen int) (map[string]any, error) {
 		}
 
 		// Parse the key (it should be a string or unquoted identifier)
-		keyToken := tokens[*i]
-		if keyToken.Type != TOKEN_STRING {
-			return nil, fmt.Errorf("expected a string for key but found '%s'", keyToken.Value)
+		key, err := parseObjectKey(tokens[*i])
+		if err != nil {
+			return nil, err
 		}
-		key := keyToken.Value
 		*i++
 
 		// Expect a colon after the key
@@ -120,6 +119,25 @@ func parseObject(tokens []Token, i *int, tokenLen int) (map[string]any, error) {
 	}
 
 	return result, nil
+}
+
+func parseObjectKey(token Token) (string, error) {
+	switch token.Type {
+	case TOKEN_STRING:
+		return token.Value, nil
+	case TOKEN_TRUE:
+		return "true", nil
+	case TOKEN_FALSE:
+		return "false", nil
+	case TOKEN_NULL:
+		return "null", nil
+	case TOKEN_NUMBER:
+		if token.Value == "Infinity" || token.Value == "NaN" {
+			return token.Value, nil
+		}
+	}
+
+	return "", fmt.Errorf("expected a string for key but found '%s'", token.Value)
 }
 
 // parseArray parses the tokens as a JSON5 array and returns a []interface{}

@@ -31,8 +31,8 @@ func TestDecodeIntoAnyNull(t *testing.T) {
 func TestDecodeIntoAnyEmptyInput(t *testing.T) {
 	var v any = "sentinel"
 	err := Decode([]byte(``), &v)
-	assert.NoError(t, err)
-	assert.Nil(t, v)
+	assert.Error(t, err)
+	assert.Equal(t, "sentinel", v)
 }
 
 func TestDecodeIntoNonEmptyInterfaceReturnsError(t *testing.T) {

@@ -1,0 +1,25 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.4'
+
+      - name: Test root module
+        run: go test ./...
+
+      - name: Vet root module
+        run: go vet ./...
+
+      - name: Test example module
+        working-directory: example
+        run: go test ./...

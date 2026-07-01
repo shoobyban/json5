@@ -545,14 +545,14 @@ func TestTokenizeUnterminatedDoubleQuotedString(t *testing.T) {
 	// Unterminated double-quoted string should not panic
 	tokens := Tokenize(`"unterminated`)
 	assert.Len(t, tokens, 1)
-	assert.Equal(t, TOKEN_STRING, tokens[0].Type)
+	assert.Equal(t, TOKEN_UNKNOWN, tokens[0].Type)
 }
 
 func TestTokenizeUnterminatedSingleQuotedString(t *testing.T) {
 	// Unterminated single-quoted string should not panic
 	tokens := Tokenize(`'unterminated`)
 	assert.Len(t, tokens, 1)
-	assert.Equal(t, TOKEN_STRING, tokens[0].Type)
+	assert.Equal(t, TOKEN_UNKNOWN, tokens[0].Type)
 }
 
 // --- Regression: Multi-byte chars inside multi-line comments (#3) ---
